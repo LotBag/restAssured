@@ -7,11 +7,11 @@ import Utils.UtilsForTests;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
+import specification.TaskCreationSpecification;
+import specification.TaskDeleteSpecification;
+import specification.TaskUpdateSpecification;
 import java.io.IOException;
 import java.util.Properties;
-
-import static io.restassured.RestAssured.given;
 
 public class UpdateTaskTests {
 
@@ -41,32 +41,12 @@ public class UpdateTaskTests {
 
         TasksCreateDTO task = new TasksCreateDTO(taskSummary, project, taskDescription);
 
-        String taskID = given()
-                .auth().oauth2(authToken)
-                .baseUri(baseUrl)
-                .contentType("application/json")
-                .body(task)
-                .when()
-                .post("/issues")
-                .then()
-                .extract().path("id");
+        String taskID = TaskCreationSpecification.correctTaskCreationWithIDExtract(baseUrl, authToken, task);
 
         UpdateTaskDTO updateTaskDTO = new UpdateTaskDTO("*_*");
 
-        given()
-                .auth().oauth2(authToken)
-                .baseUri(baseUrl)
-                .pathParams("issueID", taskID)
-                .queryParam("summary", updateTaskDTO)
-                .contentType("application/json")
-                .body(updateTaskDTO)
-                .when()
-                .post("/issues/{issueID}/");
+        TaskUpdateSpecification.updateTask(baseUrl, authToken, updateTaskDTO, taskID);
 
-        given()
-                .baseUri(baseUrl)
-                .auth().oauth2(authToken)
-                .pathParams("issueID", taskID)
-                .when().delete("/issues/{issueID}");
+        TaskDeleteSpecification.deleteTask(baseUrl, authToken, taskID);
     }
 }

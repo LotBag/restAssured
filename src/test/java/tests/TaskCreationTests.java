@@ -3,15 +3,11 @@ package tests;
 import DTO.ProjectDTO;
 import DTO.TasksCreateDTO;
 import Utils.UtilsForTests;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.*;
-import org.hamcrest.Matchers.*;
-import Utils.UtilsForTests.*;
-
+import specification.TaskCreationSpecification;
+import specification.TaskDeleteSpecification;
 import java.io.IOException;
 import java.util.Properties;
-
-import static io.restassured.RestAssured.given;
 
 public class TaskCreationTests {
 
@@ -41,25 +37,9 @@ public class TaskCreationTests {
 
         TasksCreateDTO task = new TasksCreateDTO(taskSummary, project, taskDescription);
 
-        String taskID = given()
-                .auth().oauth2(authToken)
-                .baseUri(baseUrl)
-                .contentType("application/json")
-                .body(task)
-                .when()
-                .post("/issues")
-                .then()
-                .statusCode(200)
-                .body("id", Matchers.notNullValue())
-                .body("$type", Matchers.containsString("Issue"))
-                .extract().path("id");
+        String taskID = TaskCreationSpecification.correctTaskCreationWithIDExtract(baseUrl, authToken, task);
 
-
-        given()
-                .baseUri(baseUrl)
-                .auth().oauth2(authToken)
-                .pathParams("issueID", taskID)
-                .when().delete("/issues/{issueID}");
+        TaskDeleteSpecification.deleteTask(baseUrl, authToken, taskID);
     }
 
     @DisplayName("Creation with required only constructor")
@@ -67,24 +47,9 @@ public class TaskCreationTests {
     void createTaskWithRequiredOnlyConstructorTest() {
         TasksCreateDTO task = new TasksCreateDTO(taskSummary, project);
 
-        String taskID = given()
-                .auth().oauth2(authToken)
-                .baseUri(baseUrl)
-                .contentType("application/json")
-                .body(task)
-                .when()
-                .post("/issues")
-                .then()
-                .statusCode(200)
-                .body("id", Matchers.notNullValue())
-                .body("$type", Matchers.containsString("Issue"))
-                .extract().path("id");
+        String taskID = TaskCreationSpecification.correctTaskCreationWithIDExtract(baseUrl, authToken, task);
 
-        given()
-                .baseUri(baseUrl)
-                .auth().oauth2(authToken)
-                .pathParams("issueID", taskID)
-                .when().delete("/issues/{issueID}");
+        TaskDeleteSpecification.deleteTask(baseUrl, authToken, taskID);
     }
 
     @DisplayName("Create task with empty summary")
@@ -92,17 +57,7 @@ public class TaskCreationTests {
     void createTaskWithEmptyFieldsTest() {
         TasksCreateDTO task = new TasksCreateDTO("", project);
 
-        given()
-                .auth().oauth2(authToken)
-                .baseUri(baseUrl)
-                .contentType("application/json")
-                .body(task)
-                .when()
-                .post("/issues")
-                .then()
-                .statusCode(400)
-                .body("error_children.error_developer_message", Matchers.contains("Value for summary is required"));
-
+        TaskCreationSpecification.inCorrectTaskCreationWithIDExtract(baseUrl, authToken, task);
     }
 
 
